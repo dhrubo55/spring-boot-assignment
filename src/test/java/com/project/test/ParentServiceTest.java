@@ -12,24 +12,72 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 public class ParentServiceTest {
     @Autowired
-    private ParentRepository parentRepository;
+    ParentRepository parentRepository;
+
+    Address addressOfParentExpected = new Address(
+            "22th Street",
+            "Boston",
+            "Virginia",
+            "1212");
+    Parent parentExpected = new Parent("User","Name",addressOfParentExpected);
 
     @Test
     void getAllParents() {
-        Address address = new Address(
-                "11th Street",
-                "boston",
-                "virginia",
-                "1219"
-                );
-        Parent parentExpected = new Parent("User","Type 1",address);
         parentRepository.save(parentExpected);
         ParentService parentService = new ParentService(parentRepository);
+
         Parent parentActual = parentService.findAll().get(0);
 
-        //assertEquals(parents.size(),1);
-        assertEquals(parentExpected.firstName,parentActual.firstName);
+        assertEquals(parentExpected.firstName, parentActual.firstName);
         assertEquals(parentExpected.lastName,parentActual.lastName);
-        assertEquals(parentExpected.address.addressId,parentActual.address.streetName);
+        assertEquals(parentExpected.address.addressId,parentActual.address.addressId);
+    }
+
+    @Test
+    void getParentById() throws Exception {
+        parentRepository.save(parentExpected);
+        ParentService parentService = new ParentService(parentRepository);
+        Parent parentActual = parentService.findById(1L);
+
+        assertEquals(parentExpected.firstName, parentActual.firstName);
+    }
+
+    @Test
+    void saveParent() throws Exception {
+        ParentService parentService = new ParentService(parentRepository);
+        Parent parentActual = parentService.save(parentExpected);
+
+        assertEquals(parentExpected.firstName,parentActual.firstName);
+    }
+
+    @Test
+    void updateParent() throws Exception {
+        parentRepository.save(parentExpected);
+        ParentService parentService = new ParentService(parentRepository);
+        Parent parentActual = parentService.update(
+                1L,
+                new Parent(
+                        "firstName",
+                        "lastName",
+                        addressOfParentExpected
+                ));
+
+        assertEquals("firstName",parentActual.firstName);
+
+    }
+
+    @Test
+    void deleteParent() throws Exception {
+        parentRepository.save(parentExpected);
+        ParentService parentService = new ParentService(parentRepository);
+        parentService.delete(1L);
+
+        try {
+            Parent parentActual = parentService.findById(1L);
+            assertEquals(parentExpected.firstName, parentActual.firstName);
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), "Parent with id 1 doesnt exist");
+        }
+
     }
 }
