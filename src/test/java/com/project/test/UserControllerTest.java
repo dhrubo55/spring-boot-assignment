@@ -34,6 +34,8 @@ public class UserControllerTest {
 
     @MockBean
     ParentService parentService;
+    @MockBean
+    ChildService childService;
 
     @Test
     void getAllParents() throws Exception {
@@ -124,17 +126,90 @@ public class UserControllerTest {
 
     @Test
     void deleteParent() throws Exception {
-        Address addressOfParent1 = new Address(
-                "22th Street",
-                "Boston",
-                "Virginia",
-                "1212");
-        Parent parent1 = new Parent("User","Name",addressOfParent1);
-        //when(parentService.delete(anyLong())).thenReturn();
         ResultActions resultActions = mockMvc.perform(
                 delete("/parent/{id}",1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
+        );
+        resultActions.andExpect(status().isOk());
+    }
+
+    @Test
+    void getAllChild() throws Exception {
+       Child childExpected = new Child(1L,"User","Name");
+       List<Child> childList = new ArrayList<>();
+       childList.add(childExpected);
+
+       when(childService.findAll()).thenReturn(childList);
+       mockMvc.perform(MockMvcRequestBuilders
+               .get("/child")
+               .contentType(MediaType.APPLICATION_JSON)
+       )
+               .andExpect(jsonPath("$",hasSize(1)))
+               .andDo(print());
+    }
+
+    @Test
+    void getChildById() throws Exception {
+        Child childExpected = new Child(1L,"User","Name");
+
+        when(childService.getById(anyLong())).thenReturn(childExpected);
+
+        mockMvc.perform(MockMvcRequestBuilders
+        .get("/child/{id}",1)
+        .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andExpect(jsonPath("$.firstName").value(childExpected.firstName))
+                .andDo(print());
+    }
+
+    @Test
+    void successfullyCreateChild() throws Exception {
+        Child childExpected = new Child(1L,"User","Name");
+
+        when(childService.save(any(Child.class))).thenReturn(childExpected);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String childJson = objectMapper.writeValueAsString(childExpected);
+        ResultActions resultActions = mockMvc.perform(
+                post("/child")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(childJson)
+        );
+
+        resultActions
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.parentId").value(childExpected.parentId))
+                .andExpect(jsonPath("$.firstName").value(childExpected.firstName))
+                .andExpect(jsonPath("$.lastName").value(childExpected.lastName));
+    }
+
+    @Test
+    void updateChild() throws Exception {
+        Child childExpected = new Child(1L,"User","Name");
+
+        when(childService.update(anyLong(),any(Child.class))).thenReturn(childExpected);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String childJson = objectMapper.writeValueAsString(childExpected);
+
+        ResultActions resultActions = mockMvc.perform(
+                put("/child/{id}", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(childJson)
+        );
+
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parentId").value(childExpected.parentId))
+                .andExpect(jsonPath("$.firstName").value(childExpected.firstName))
+                .andExpect(jsonPath("$.lastName").value(childExpected.lastName));
+    }
+
+    @Test
+    void deleteChild() throws Exception {
+        ResultActions resultActions = mockMvc.perform(
+                delete("/child/{id}", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
         );
         resultActions.andExpect(status().isOk());
     }
