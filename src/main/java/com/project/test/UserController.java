@@ -12,9 +12,10 @@ import java.util.List;
 public class UserController {
 
     final ParentService parentService;
-
-    public UserController(ParentService parentService) {
+    final ChildService childService;
+    public UserController(ParentService parentService, ChildService childService) {
         this.parentService = parentService;
+        this.childService = childService;
     }
 
     @GetMapping("/parent")
@@ -26,7 +27,7 @@ public class UserController {
         return new ResponseEntity<>(parentService.findById(id), HttpStatus.OK);
     }
 
-    @PostMapping("/parent")
+    @PostMapping(value = "/parent", consumes = "application/json")
     public ResponseEntity<Parent> createParent(@RequestBody Parent parent) {
         return new ResponseEntity<>(parentService.save(parent),HttpStatus.CREATED);
     }
@@ -37,7 +38,40 @@ public class UserController {
     }
 
     @DeleteMapping("/parent/{id}")
-    public void deleteParent(@PathVariable long id) {
+    public ResponseEntity<Object> deleteParent(@PathVariable Long id) {
         parentService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/child")
+    public ResponseEntity<List<Child>> getAllChild() {
+        return new ResponseEntity<>(childService.findAll(), HttpStatus.OK);
+    }
+
+    @GetMapping("/child/{id}")
+    public ResponseEntity<Child> getChildById(@PathVariable("id") Long id) throws Exception {
+        return new ResponseEntity<>(childService.getById(id),HttpStatus.OK);
+    }
+
+    @PostMapping("/child")
+    public ResponseEntity<Child> createChild(@RequestBody Child child) {
+        if (childService.isParentIdExist(child.getParentId(),parentService))
+            return new ResponseEntity<>(childService.save(child), HttpStatus.CREATED);
+        else
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @PutMapping("/child/{id}")
+    public ResponseEntity<Child> updateChild(@PathVariable("id") Long id, @RequestBody Child child) {
+        if (childService.isParentIdExist(child.getParentId(), parentService))
+            return new ResponseEntity<>(childService.update(id,child), HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @DeleteMapping("/child/{id}")
+    public ResponseEntity<Object> deleteChildById(@PathVariable("id") Long id) {
+        childService.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
