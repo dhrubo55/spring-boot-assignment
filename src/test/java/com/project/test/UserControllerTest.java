@@ -1,6 +1,7 @@
 package com.project.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,17 @@ public class UserControllerTest {
     ParentService parentService;
     @MockBean
     ChildService childService;
+
+    @BeforeEach
+    public void setupParent() {
+        Address addressOfParentExpected = new Address(
+                "22th Street",
+                "Boston",
+                "Virginia",
+                "1212");
+        Parent parentExpected = new Parent("User","Name",addressOfParentExpected);
+        parentRepository.save(parentExpected);
+    }
 
     @Test
     void getAllParents() throws Exception {
@@ -165,6 +177,7 @@ public class UserControllerTest {
 
     @Test
     void successfullyCreateChild() throws Exception {
+        when(childService.isParentIdExist(1L,parentService)).thenReturn(true);
         Child childExpected = new Child(1L,"User","Name");
 
         when(childService.save(any(Child.class))).thenReturn(childExpected);
@@ -186,7 +199,7 @@ public class UserControllerTest {
     @Test
     void updateChild() throws Exception {
         Child childExpected = new Child(1L,"User","Name");
-
+        when(childService.isParentIdExist(1L, parentService)).thenReturn(true);
         when(childService.update(anyLong(),any(Child.class))).thenReturn(childExpected);
         ObjectMapper objectMapper = new ObjectMapper();
         String childJson = objectMapper.writeValueAsString(childExpected);
