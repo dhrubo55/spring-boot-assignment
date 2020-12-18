@@ -1,7 +1,9 @@
 ## Java Version
-Used Java 8 JDK 1.8
+
+Used Java 8 ( JDK 1.8)
 
 ## Installation
+
 Use maven command to compile and install
 
 ```
