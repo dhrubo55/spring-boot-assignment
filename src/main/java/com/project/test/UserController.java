@@ -49,24 +49,28 @@ public class UserController {
     }
 
     @GetMapping("/child/{id}")
-    public ResponseEntity<Child> getChildById(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity<Object> getChildById(@PathVariable("id") Long id) throws Exception {
         return new ResponseEntity<>(childService.getById(id),HttpStatus.OK);
     }
 
     @PostMapping("/child")
-    public ResponseEntity<Child> createChild(@RequestBody Child child) {
+    public ResponseEntity<Object> createChild(@RequestBody Child child) {
         if (childService.isParentIdExist(child.getParentId(),parentService))
             return new ResponseEntity<>(childService.save(child), HttpStatus.CREATED);
         else
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    String.format(UserConstants.PARENT_NOT_FOUND,child.getParentId()),
+                    HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("/child/{id}")
-    public ResponseEntity<Child> updateChild(@PathVariable("id") Long id, @RequestBody Child child) {
+    public ResponseEntity<Object> updateChild(@PathVariable("id") Long id, @RequestBody Child child) {
         if (childService.isParentIdExist(child.getParentId(), parentService))
             return new ResponseEntity<>(childService.update(id,child), HttpStatus.OK);
         else
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    String.format(UserConstants.PARENT_NOT_FOUND,child.getParentId()),
+                    HttpStatus.BAD_REQUEST);
     }
 
     @DeleteMapping("/child/{id}")
